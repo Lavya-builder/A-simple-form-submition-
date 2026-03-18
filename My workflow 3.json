@@ -1,0 +1,178 @@
+{
+  "name": "My workflow 3",
+  "nodes": [
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "value": "openai/gpt-3.5-turbo",
+          "mode": "list",
+          "cachedResultName": "openai/gpt-3.5-turbo"
+        },
+        "responsesApiEnabled": "={{ true }}",
+        "builtInTools": {},
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.3,
+      "position": [
+        -304,
+        96
+      ],
+      "id": "4d1ad793-92c5-4bee-bac1-2bb1a3ff4f38",
+      "name": "OpenAI Chat Model",
+      "credentials": {
+        "openAiApi": {
+          "id": "Q8ljorJp1yXa445c",
+          "name": "OpenAi account 5"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Email Subject: {{$json[\"subject\"]}}\n\nEmail Body:\n{{$json[\"textPlain\"]}}",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        -272,
+        -128
+      ],
+      "id": "b8aed657-5a20-49df-ab12-29ebab61983f",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "pollTimes": {
+          "item": [
+            {
+              "mode": "everyMinute"
+            }
+          ]
+        },
+        "filters": {
+          "readStatus": "unread"
+        }
+      },
+      "type": "n8n-nodes-base.gmailTrigger",
+      "typeVersion": 1.3,
+      "position": [
+        -448,
+        -128
+      ],
+      "id": "c4ee07b2-37d4-4d76-bb5b-5744abd3d993",
+      "name": "Gmail Trigger",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "9sOap2B7LmTKPDim",
+          "name": "Gmail account 3"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "thread",
+        "operation": "reply",
+        "threadId": "={{$node[\"Gmail Trigger\"].json[\"threadId\"]}}",
+        "messageId": "={{$node[\"Gmail Trigger\"].json[\"id\"]}}",
+        "message": "={{$node[\"AI Agent\"].json[\"output\"]}}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        80,
+        -128
+      ],
+      "id": "a021ff21-a9c8-4aa6-b7e0-a4ca003fa491",
+      "name": "Reply to a message",
+      "webhookId": "01f8291a-76b9-4d2e-9c78-8575804376e4",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "9sOap2B7LmTKPDim",
+          "name": "Gmail account 3"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "={{ $json.threadId }}",
+        "contextWindowLength": 10
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.3,
+      "position": [
+        -160,
+        96
+      ],
+      "id": "7a695533-a4d0-4bc0-be8e-32e6e25733f7",
+      "name": "Simple Memory"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "OpenAI Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "Reply to a message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Gmail Trigger": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Simple Memory": {
+      "ai_memory": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false,
+    "timeSavedMode": "fixed",
+    "callerPolicy": "workflowsFromSameOwner",
+    "timeSavedPerExecution": 0
+  },
+  "versionId": "c772e24c-3223-4624-b826-ff0ced68d767",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "6cf213b762558ddd0ae5e1b7ca8aea82a1c6ca0a2f6d9227f19a0845131b1587"
+  },
+  "id": "APzY6cIGggK5sVuO",
+  "tags": []
+}
